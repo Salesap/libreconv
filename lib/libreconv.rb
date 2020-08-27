@@ -97,7 +97,7 @@ module Libreconv
         escaped_source,
         '--outdir', target_path
       ]
-      command_arr += ['--infilter', @infilter] unless @infilter.nil?
+      command_arr += ['--infilter=' + @infilter] unless @infilter.nil?
       command_arr
     end
 
