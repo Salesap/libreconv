@@ -19,8 +19,8 @@ module Libreconv
   # @raise [URI::Error]             When URI parsing error.
   # @raise [Net::ProtocolError]     If source URL checking failed.
   # @raise [ConversionFailedError]  When soffice command execution error.
-  def self.convert(source, target, soffice_command = nil, convert_to = nil)
-    Converter.new(source, target, soffice_command, convert_to).convert
+  def self.convert(source, target, soffice_command = nil, convert_to = nil, infilter = nil)
+    Converter.new(source, target, soffice_command, convert_to, infilter).convert
   end
 
   class Converter
@@ -34,11 +34,12 @@ module Libreconv
     # @raise [IOError]                If invalid source file/URL or soffice command not found.
     # @raise [URI::Error]             When URI parsing error.
     # @raise [Net::ProtocolError]     If source URL checking failed.
-    def initialize(source, target, soffice_command = nil, convert_to = nil)
+    def initialize(source, target, soffice_command = nil, convert_to = nil, infilter = nil)
       @source = check_source_type(source)
       @target = target
       @soffice_command = soffice_command || which('soffice') || which('soffice.bin')
       @convert_to = convert_to || 'pdf'
+      @infilter = infilter
 
       ensure_soffice_exists
     end
@@ -87,7 +88,7 @@ module Libreconv
     # @param [String] target_path
     # @return [Array<String>]
     def build_command(tmp_pipe_path, target_path)
-      [
+      command_arr = [
         soffice_command,
         "--accept=\"pipe,name=#{File.basename(tmp_pipe_path)};url;StarOffice.ServiceManager\"",
         "-env:UserInstallation=#{build_file_uri(tmp_pipe_path)}",
@@ -96,6 +97,8 @@ module Libreconv
         escaped_source,
         '--outdir', target_path
       ]
+      command_arr += ['--infilter', @infilter] unless @infilter.nil?
+      command_arr
     end
 
     # If the URL contains GET params, the '&' could break when being used as an argument to soffice.
