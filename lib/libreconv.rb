@@ -19,8 +19,8 @@ module Libreconv
   # @raise [URI::Error]             When URI parsing error.
   # @raise [Net::ProtocolError]     If source URL checking failed.
   # @raise [ConversionFailedError]  When soffice command execution error.
-  def self.convert(source, target, soffice_command = nil, convert_to = nil, infilter = nil)
-    Converter.new(source, target, soffice_command, convert_to, infilter).convert
+  def self.convert(source, target, soffice_command = nil, convert_to = nil, options = nil)
+    Converter.new(source, target, soffice_command, convert_to, options).convert
   end
 
   class Converter
@@ -34,12 +34,12 @@ module Libreconv
     # @raise [IOError]                If invalid source file/URL or soffice command not found.
     # @raise [URI::Error]             When URI parsing error.
     # @raise [Net::ProtocolError]     If source URL checking failed.
-    def initialize(source, target, soffice_command = nil, convert_to = nil, infilter = nil)
+    def initialize(source, target, soffice_command = nil, convert_to = nil, options = nil)
       @source = check_source_type(source)
       @target = target
       @soffice_command = soffice_command || which('soffice') || which('soffice.bin')
       @convert_to = convert_to || 'pdf'
-      @infilter = infilter
+      @options = options || []
 
       ensure_soffice_exists
     end
@@ -97,7 +97,7 @@ module Libreconv
         escaped_source,
         '--outdir', target_path
       ]
-      command_arr += ['--infilter=' + @infilter] unless @infilter.nil?
+      command_arr += @options unless @options.nil?
       command_arr
     end
 
